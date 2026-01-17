@@ -26,30 +26,6 @@ This is an ESM-only port of [gray-matter](https://github.com/jonschlinkert/gray-
 
 Use `nix develop` to enter the development shell. This provides all required tools including `tsgo`.
 
-When running git commands that trigger pre-commit hooks (like `git commit`), use:
-
-```bash
-nix develop -c git commit -m "your message"
-```
-
-This ensures `tsgo` and other Nix-provided tools are available during hook execution.
-
-## Testing (Critical)
-
-This project uses **in-source vitest tests**. Tests are written at the bottom of source files:
-
-```typescript
-if (import.meta.vitest) {
-  describe("my module", () => {
-    it("should work", () => {
-      expect(true).toBe(true);
-    });
-  });
-}
-```
-
-**Important**: Do NOT destructure from `import.meta.vitest`. Test globals are available via `vitest/globals`.
-
 ## Dependency Management (Critical)
 
 All dependencies MUST be managed via **pnpm catalog** in `pnpm-workspace.yaml`. **Never** add dependencies directly with version numbers in `package.json`.
@@ -59,8 +35,9 @@ All dependencies MUST be managed via **pnpm catalog** in `pnpm-workspace.yaml`. 
 
 ## Additional Rules
 
-| File                                                           | Description                                             |
-| -------------------------------------------------------------- | ------------------------------------------------------- |
-| [testing.md](.claude/rules/testing.md)                         | Property-based testing with fast-check                  |
-| [typescript-patterns.md](.claude/rules/typescript-patterns.md) | `as` assertions, `as const satisfies`, nullish patterns |
-| [dependencies.md](.claude/rules/dependencies.md)               | Catalog structure examples, JSR dependencies            |
+| File                                                           | Description                                               |
+| -------------------------------------------------------------- | --------------------------------------------------------- |
+| [git.md](.claude/rules/git.md)                                 | Git workflow with pre-commit hooks                        |
+| [testing.md](.claude/rules/testing.md)                         | In-source testing, property-based testing with fast-check |
+| [typescript-patterns.md](.claude/rules/typescript-patterns.md) | `as` assertions, `as const satisfies`, nullish patterns   |
+| [dependencies.md](.claude/rules/dependencies.md)               | Catalog structure examples, JSR dependencies              |
