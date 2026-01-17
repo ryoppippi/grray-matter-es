@@ -35,7 +35,6 @@
             projectRootFile = "flake.nix";
             programs = {
               nixfmt.enable = true;
-              nixfmt.package = pkgs.nixfmt-rfc-style;
             };
             settings.formatter.oxfmt = {
               command = "${pkgs.oxfmt}/bin/oxfmt";
