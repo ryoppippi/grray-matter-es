@@ -1,4 +1,20 @@
-# Testing Details
+# Testing
+
+## In-Source Testing
+
+This project uses **in-source vitest tests**. Tests are written at the bottom of source files:
+
+```typescript
+if (import.meta.vitest) {
+  describe("my module", () => {
+    it("should work", () => {
+      expect(true).toBe(true);
+    });
+  });
+}
+```
+
+**Important**: Do NOT destructure from `import.meta.vitest`. Test globals are available via `vitest/globals`.
 
 ## Property-Based Testing with fast-check
 
