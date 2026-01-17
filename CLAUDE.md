@@ -35,9 +35,8 @@ All dependencies MUST be managed via **pnpm catalog** in `pnpm-workspace.yaml`. 
 
 ## Additional Rules
 
-| File                                                           | Description                                               |
-| -------------------------------------------------------------- | --------------------------------------------------------- |
-| [git.md](.claude/rules/git.md)                                 | Git workflow with pre-commit hooks                        |
-| [testing.md](.claude/rules/testing.md)                         | In-source testing, property-based testing with fast-check |
-| [typescript-patterns.md](.claude/rules/typescript-patterns.md) | `as` assertions, `as const satisfies`, nullish patterns   |
-| [dependencies.md](.claude/rules/dependencies.md)               | Catalog structure examples, JSR dependencies              |
+| File                                             | Description                                               |
+| ------------------------------------------------ | --------------------------------------------------------- |
+| [git.md](.claude/rules/git.md)                   | Git workflow with pre-commit hooks                        |
+| [testing.md](.claude/rules/testing.md)           | In-source testing, property-based testing with fast-check |
+| [dependencies.md](.claude/rules/dependencies.md) | Catalog structure examples, JSR dependencies              |

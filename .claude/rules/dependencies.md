@@ -1,3 +1,9 @@
+---
+paths:
+  - "package.json"
+  - "pnpm-workspace.yaml"
+---
+
 # Dependency Management Details
 
 ## Catalog Structure Example
