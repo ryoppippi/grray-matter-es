@@ -190,6 +190,35 @@ If you're using CommonJS, you'll need to either:
 const matter = await import("gray-matter-es").then((m) => m.default);
 ```
 
+## Development
+
+### Prerequisites
+
+This project uses [Nix](https://nixos.org/) for development environment management. Make sure you have Nix installed with flakes enabled.
+
+### Setup
+
+```bash
+# Enter the development shell
+nix develop
+```
+
+### Commands
+
+```bash
+# Run tests
+pnpm run test
+
+# Type check with tsgo
+pnpm run typecheck
+
+# Build
+pnpm run build
+
+# Lint
+pnpm run lint
+```
+
 ## License
 
 MIT
