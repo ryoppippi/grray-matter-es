@@ -11,7 +11,7 @@ function stripBom(str: string): string {
  * Define a non-enumerable property on an object
  */
 export function define<T extends object, K extends PropertyKey, V>(obj: T, key: K, val: V): void {
-  Reflect.defineProperty(obj, key, {
+  Object.defineProperty(obj, key, {
     enumerable: false,
     configurable: true,
     writable: true,
@@ -56,14 +56,6 @@ export function toString(input: string | Buffer): string {
  */
 export function arrayify<T>(val: T | T[] | undefined | null): T[] {
   return val ? (Array.isArray(val) ? val : [val]) : [];
-}
-
-/**
- * Returns true if `str` starts with `substr`
- */
-export function startsWith(str: string, substr: string, len?: number): boolean {
-  const length = typeof len === "number" ? len : substr.length;
-  return str.slice(0, length) === substr;
 }
 
 if (import.meta.vitest) {
@@ -119,16 +111,6 @@ if (import.meta.vitest) {
       it("should return empty array for null/undefined", () => {
         expect(arrayify(null)).toEqual([]);
         expect(arrayify(undefined)).toEqual([]);
-      });
-    });
-
-    describe("startsWith", () => {
-      it("should return true if string starts with substr", () => {
-        expect(startsWith("---\nhello", "---")).toBe(true);
-      });
-
-      it("should return false if string does not start with substr", () => {
-        expect(startsWith("hello", "---")).toBe(false);
       });
     });
   });

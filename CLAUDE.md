@@ -90,6 +90,22 @@ const ALIASES = {
 const engines: Engines = { yaml, json, javascript };
 ```
 
+### Use `== null` for Nullish Checks
+
+Prefer `== null` over `=== undefined || === null` for checking both `undefined` and `null`:
+
+```typescript
+// Good - concise idiom that checks both undefined and null
+if (data == null) {
+  return defaultValue;
+}
+
+// Avoid - verbose and unnecessary
+if (data === undefined || data === null) {
+  return defaultValue;
+}
+```
+
 ## Dependency Management
 
 All dependencies MUST be managed via pnpm catalog in `pnpm-workspace.yaml`:

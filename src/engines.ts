@@ -31,27 +31,30 @@ const json = {
 } as const satisfies Engine;
 
 /**
+ * Internal parser for JavaScript front matter
+ */
+function parseJavaScript(str: string, wrap: boolean): Record<string, unknown> {
+  try {
+    let code = str;
+    if (wrap) {
+      code = "(function() {\nreturn " + str.trim() + ";\n}());";
+    }
+    // eslint-disable-next-line no-eval
+    return (eval(code) as Record<string, unknown>) || {};
+  } catch (err) {
+    if (wrap && err instanceof Error && /(unexpected|identifier)/i.test(err.message)) {
+      return parseJavaScript(str, false);
+    }
+    throw new SyntaxError("Failed to parse JavaScript front matter", { cause: err });
+  }
+}
+
+/**
  * JavaScript engine (uses eval)
  */
 const javascript = {
-  parse: function parse(
-    str: string,
-    _options?: GrayMatterOptions,
-    wrap: boolean = true,
-  ): Record<string, unknown> {
-    try {
-      let code = str;
-      if (wrap !== false) {
-        code = "(function() {\nreturn " + str.trim() + ";\n}());";
-      }
-      // eslint-disable-next-line no-eval
-      return (eval(code) as Record<string, unknown>) || {};
-    } catch (err) {
-      if (wrap !== false && err instanceof Error && /(unexpected|identifier)/i.test(err.message)) {
-        return parse(str, _options, false);
-      }
-      throw new SyntaxError(String(err));
-    }
+  parse: (str: string, _options?: GrayMatterOptions): Record<string, unknown> => {
+    return parseJavaScript(str, true);
   },
   stringify: (): never => {
     throw new Error("stringifying JavaScript is not supported");
@@ -188,14 +191,20 @@ if (import.meta.vitest) {
       expect(result).toEqual({});
     });
 
-    test.prop([
-      fc.string({ minLength: 1, maxLength: 30 }).filter((s) => /^[a-zA-Z_]/.test(s)),
-      fc.integer({ min: -1000, max: 1000 }),
-    ])("should parse simple object literals", (key, value) => {
-      const safeKey = key.replace(/[^a-zA-Z0-9_]/g, "_");
-      const code = `{ ${safeKey}: ${value} }`;
-      const result = javascript.parse(code);
-      expect(result[safeKey]).toBe(value);
-    });
+    /** Safe key arbitrary that excludes __proto__ and similar reserved properties */
+    const safeJsKey = fc
+      .string({ minLength: 1, maxLength: 30 })
+      .filter((s) => /^[a-zA-Z_]/.test(s))
+      .map((s) => s.replace(/[^a-zA-Z0-9_]/g, "_"))
+      .filter((s) => !["__proto__", "constructor", "prototype"].includes(s));
+
+    test.prop([safeJsKey, fc.integer({ min: -1000, max: 1000 })])(
+      "should parse simple object literals",
+      (safeKey, value) => {
+        const code = `{ ${safeKey}: ${value} }`;
+        const result = javascript.parse(code);
+        expect(result[safeKey]).toBe(value);
+      },
+    );
   });
 }

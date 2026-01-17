@@ -6,7 +6,6 @@ import { excerpt } from "./excerpt.ts";
 import { parse } from "./parse.ts";
 import { stringify } from "./stringify.ts";
 import { toFile } from "./to-file.ts";
-import { startsWith } from "./utils.ts";
 import type {
   GrayMatterFile,
   GrayMatterInput,
@@ -101,7 +100,7 @@ function parseMatter(file: GrayMatterFile, options?: GrayMatterOptions): GrayMat
 
   // get the length of the opening delimiter
   const openLen = open.length;
-  if (!startsWith(str, open, openLen)) {
+  if (!str.startsWith(open)) {
     excerpt(file, opts);
     return file;
   }
@@ -109,7 +108,7 @@ function parseMatter(file: GrayMatterFile, options?: GrayMatterOptions): GrayMat
   // if the next character after the opening delimiter is
   // a character from the delimiter, then it's not a front-
   // matter delimiter
-  if (str.charAt(openLen) === open.slice(-1)) {
+  if (str.at(openLen) === open.at(-1)) {
     return file;
   }
 
@@ -148,10 +147,10 @@ function parseMatter(file: GrayMatterFile, options?: GrayMatterOptions): GrayMat
     file.content = "";
   } else {
     file.content = str.slice(closeIndex + close.length);
-    if (file.content[0] === "\r") {
+    if (file.content.at(0) === "\r") {
       file.content = file.content.slice(1);
     }
-    if (file.content[0] === "\n") {
+    if (file.content.at(0) === "\n") {
       file.content = file.content.slice(1);
     }
   }
@@ -183,7 +182,7 @@ function matterLanguage(str: string, options?: GrayMatterOptions): { raw: string
  * Returns true if the given string has front matter.
  */
 function matterTest(str: string, options?: GrayMatterOptions): boolean {
-  return startsWith(str, defaults(options).delimiters[0]);
+  return str.startsWith(defaults(options).delimiters[0]);
 }
 
 /**
