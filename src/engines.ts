@@ -31,43 +31,11 @@ const json = {
 } as const satisfies Engine;
 
 /**
- * Internal parser for JavaScript front matter
- */
-function parseJavaScript(str: string, wrap: boolean): Record<string, unknown> {
-  try {
-    let code = str;
-    if (wrap) {
-      code = "(function() {\nreturn " + str.trim() + ";\n}());";
-    }
-    // eslint-disable-next-line no-eval
-    return (eval(code) as Record<string, unknown>) || {};
-  } catch (err) {
-    if (wrap && err instanceof Error && /(unexpected|identifier)/i.test(err.message)) {
-      return parseJavaScript(str, false);
-    }
-    throw new SyntaxError("Failed to parse JavaScript front matter", { cause: err });
-  }
-}
-
-/**
- * JavaScript engine (uses eval)
- */
-const javascript = {
-  parse: (str: string): Record<string, unknown> => {
-    return parseJavaScript(str, true);
-  },
-  stringify: (): never => {
-    throw new Error("stringifying JavaScript is not supported");
-  },
-} as const satisfies Engine;
-
-/**
  * Default engines
  */
 export const engines = {
   yaml,
   json,
-  javascript,
 } as const satisfies Engines;
 
 if (import.meta.vitest) {
@@ -165,46 +133,5 @@ if (import.meta.vitest) {
       const parsed = json.parse(stringified);
       expect(parsed).toEqual(wrapped);
     });
-  });
-
-  describe("javascript engine", () => {
-    it("should parse JavaScript object literal", () => {
-      const result = javascript.parse("{ title: 'Hello', count: 42 }");
-      expect(result).toEqual({ title: "Hello", count: 42 });
-    });
-
-    it("should handle object with expressions", () => {
-      const result = javascript.parse("{ sum: 1 + 2, arr: [1, 2, 3] }");
-      expect(result).toEqual({ sum: 3, arr: [1, 2, 3] });
-    });
-
-    it("should throw on invalid syntax", () => {
-      expect(() => javascript.parse("{{{{")).toThrow(SyntaxError);
-    });
-
-    it("should throw when stringify is called", () => {
-      expect(() => javascript.stringify()).toThrow("stringifying JavaScript is not supported");
-    });
-
-    it("should return empty object for falsy result", () => {
-      const result = javascript.parse("null");
-      expect(result).toEqual({});
-    });
-
-    /** Safe key arbitrary that excludes __proto__ and similar reserved properties */
-    const safeJsKey = fc
-      .string({ minLength: 1, maxLength: 30 })
-      .filter((s) => /^[a-zA-Z_]/.test(s))
-      .map((s) => s.replace(/[^a-zA-Z0-9_]/g, "_"))
-      .filter((s) => !["__proto__", "constructor", "prototype"].includes(s));
-
-    test.prop([safeJsKey, fc.integer({ min: -1000, max: 1000 })])(
-      "should parse simple object literals",
-      (safeKey, value) => {
-        const code = `{ ${safeKey}: ${value} }`;
-        const result = javascript.parse(code);
-        expect(result[safeKey]).toBe(value);
-      },
-    );
   });
 }

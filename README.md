@@ -119,6 +119,7 @@ Detect the language specified after the opening delimiter.
 
 - ESM-only (no CommonJS support)
 - Uses `@std/yaml` instead of `js-yaml`
+- Removed JavaScript front matter engine (security: avoids `eval`)
 - Removed deprecated options (`lang`, `delims`, `parsers`)
 - Removed `section-matter` support
 - TypeScript-first with strict types
