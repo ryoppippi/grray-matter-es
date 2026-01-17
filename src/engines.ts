@@ -1,5 +1,10 @@
 import { parse as yamlParse, stringify as yamlStringify } from "@std/yaml";
-import type { Engine, Engines, GrayMatterOptions } from "./types.ts";
+import type { Engine, GrayMatterOptions } from "./types.ts";
+
+/**
+ * Built-in language names
+ */
+export type BuiltinLanguage = "yaml" | "json";
 
 /**
  * YAML engine using @std/yaml
@@ -31,12 +36,18 @@ const json = {
 } as const satisfies Engine;
 
 /**
- * Default engines
+ * Get engine by language name
  */
-export const engines = {
-  yaml,
-  json,
-} as const satisfies Engines;
+export function getEngine(language: BuiltinLanguage): Engine {
+  switch (language) {
+    case "yaml":
+      return yaml;
+    case "json":
+      return json;
+    default:
+      throw new Error(`Unknown language: ${language satisfies never}`);
+  }
+}
 
 if (import.meta.vitest) {
   const { fc, test } = await import("@fast-check/vitest");
@@ -132,6 +143,16 @@ if (import.meta.vitest) {
       const stringified = json.stringify(wrapped);
       const parsed = json.parse(stringified);
       expect(parsed).toEqual(wrapped);
+    });
+  });
+
+  describe("getEngine", () => {
+    it("should return yaml engine", () => {
+      expect(getEngine("yaml")).toBe(yaml);
+    });
+
+    it("should return json engine", () => {
+      expect(getEngine("json")).toBe(json);
     });
   });
 }

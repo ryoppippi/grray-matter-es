@@ -1,5 +1,5 @@
 import { defaults } from "./defaults.ts";
-import { getEngine } from "./engine.ts";
+import { type BuiltinLanguage, getEngine } from "./engines.ts";
 import type { GrayMatterFile, GrayMatterOptions } from "./types.ts";
 import { isObject } from "./utils.ts";
 
@@ -38,17 +38,13 @@ export function stringify(
     data = opts.data;
   }
 
-  const language = fileObj.language || opts.language;
-  const engine = getEngine(language, opts);
-
-  if (typeof engine.stringify !== "function") {
-    throw new TypeError(`expected "${language}.stringify" to be a function`);
-  }
+  const language = (fileObj.language || opts.language) as BuiltinLanguage;
+  const engine = getEngine(language);
 
   data = { ...fileObj.data, ...data };
   const open = opts.delimiters[0];
   const close = opts.delimiters[1];
-  const matter = engine.stringify(data, options).trim();
+  const matter = engine.stringify!(data).trim();
   let buf = "";
 
   if (matter !== "{}") {

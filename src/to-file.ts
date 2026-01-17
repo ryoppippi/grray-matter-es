@@ -1,4 +1,4 @@
-import type { GrayMatterFile, GrayMatterInput } from "./types.ts";
+import type { GrayMatterFile, GrayMatterInput, GrayMatterOptions } from "./types.ts";
 import { define, isObject, toBuffer, toString } from "./utils.ts";
 import { stringify } from "./stringify.ts";
 
@@ -26,11 +26,7 @@ export function toFile(input: GrayMatterInput): GrayMatterFile {
   define(
     file,
     "stringify",
-    function (
-      this: GrayMatterFile,
-      data?: Record<string, unknown>,
-      options?: { language?: string },
-    ) {
+    function (this: GrayMatterFile, data?: Record<string, unknown>, options?: GrayMatterOptions) {
       if (options?.language) {
         this.language = options.language;
       }

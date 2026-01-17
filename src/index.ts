@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { Buffer } from "node:buffer";
 import { defaults } from "./defaults.ts";
-import { engines } from "./engines.ts";
+import { type BuiltinLanguage } from "./engines.ts";
 import { excerpt } from "./excerpt.ts";
 import { parse } from "./parse.ts";
 import { stringify } from "./stringify.ts";
@@ -15,13 +15,14 @@ import type {
 
 export type {
   Engine,
-  Engines,
   GrayMatterFile,
   GrayMatterInput,
   GrayMatterOptions,
   MatterFunction,
   ResolvedOptions,
 } from "./types.ts";
+
+export type { BuiltinLanguage } from "./engines.ts";
 
 /**
  * Cache for parsed results
@@ -139,7 +140,7 @@ function parseMatter(file: GrayMatterFile, options?: GrayMatterOptions): GrayMat
     file.data = {};
   } else {
     // create file.data by parsing the raw file.matter block
-    file.data = parse(file.language, file.matter, opts);
+    file.data = parse(file.language as BuiltinLanguage, file.matter);
   }
 
   // update file.content
@@ -222,11 +223,6 @@ const matter: MatterFunction = Object.assign(matterImpl, {
    * first front-matter delimiter.
    */
   language: matterLanguage,
-
-  /**
-   * Expose engines
-   */
-  engines,
 
   /**
    * Clear the cache

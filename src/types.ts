@@ -2,25 +2,16 @@
  * Engine interface for parsing and stringifying front matter
  */
 export interface Engine {
-  parse: (str: string, options?: GrayMatterOptions) => Record<string, unknown>;
-  stringify?: (data: Record<string, unknown>, options?: GrayMatterOptions) => string;
-}
-
-/**
- * Collection of engines keyed by language name
- */
-export interface Engines {
-  [key: string]: Engine | Engine["parse"];
+  parse: (str: string) => Record<string, unknown>;
+  stringify?: (data: Record<string, unknown>) => string;
 }
 
 /**
  * Options for gray-matter
  */
 export interface GrayMatterOptions {
-  /** Custom parsing/stringifying engines */
-  engines?: Engines;
   /** Language to use for parsing (default: 'yaml') */
-  language?: string;
+  language?: "yaml" | "json";
   /** Delimiters for front matter (default: '---') */
   delimiters?: string | [string, string];
   /**
@@ -41,8 +32,7 @@ export interface GrayMatterOptions {
  */
 export interface ResolvedOptions extends GrayMatterOptions {
   delimiters: [string, string];
-  language: string;
-  engines: Engines;
+  language: "yaml" | "json";
 }
 
 /**
@@ -89,7 +79,6 @@ export interface MatterFunction {
   read: (filepath: string, options?: GrayMatterOptions) => GrayMatterFile;
   test: (str: string, options?: GrayMatterOptions) => boolean;
   language: (str: string, options?: GrayMatterOptions) => { raw: string; name: string };
-  engines: Engines;
   clearCache: () => void;
   cache: Map<string, GrayMatterFile>;
 }
