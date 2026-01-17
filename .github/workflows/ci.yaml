@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          tools: gitleaks
+          skip-pnpm-install: "true"
+
+      - name: Run Gitleaks
+        run: gitleaks detect --source . --config .gitleaks.toml
+
+  typos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          tools: typos
+          skip-pnpm-install: "true"
+
+      - name: Run typos
+        run: typos
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          tools: nodejs_24 pnpm_10 oxlint oxfmt
+
+      - name: Run Lint
+        run: pnpm run lint
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+
+      - name: Run Build
+        run: pnpm run build
+
+      - name: Run Tests
+        run: pnpm test

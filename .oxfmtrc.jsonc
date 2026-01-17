@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/@anthropic-ai/claude-code/oxfmt_schema.json",
+  "indentation": {
+    "style": "tab",
+    "width": 2,
+  },
+  "print_width": 120,
+  "semi": true,
+  "quote_style": "single",
+  "jsx_quote_style": "double",
+  "trailing_comma": "all",
+  "bracket_spacing": true,
+  "arrow_parens": "always",
+}

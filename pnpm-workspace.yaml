@@ -1,0 +1,15 @@
+catalogMode: strict
+
+catalogs:
+  dev:
+    tsdown: ^0.16.6
+    vitest: ^4.0.15
+  release:
+    bumpp: ^10.2.3
+    changelogithub: ^13.16.1
+    pkg-pr-new: ^0.0.60
+
+onlyBuiltDependencies:
+  - esbuild
+
+shellEmulator: true
