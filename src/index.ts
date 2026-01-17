@@ -2,21 +2,15 @@ import { defaults } from "./defaults.ts";
 import { toBuiltinLanguage } from "./engines.ts";
 import { excerpt } from "./excerpt.ts";
 import { parse } from "./parse.ts";
-import { stringify } from "./stringify.ts";
+import { stringify as stringifyImpl } from "./stringify.ts";
 import { toFile } from "./to-file.ts";
-import type {
-  GrayMatterFile,
-  GrayMatterInput,
-  GrayMatterOptions,
-  MatterFunction,
-} from "./types.ts";
+import type { GrayMatterFile, GrayMatterInput, GrayMatterOptions } from "./types.ts";
 
 export type {
   Engine,
   GrayMatterFile,
   GrayMatterInput,
   GrayMatterOptions,
-  MatterFunction,
   ResolvedOptions,
 } from "./types.ts";
 
@@ -25,7 +19,7 @@ export type { BuiltinLanguage } from "./engines.ts";
 /**
  * Cache for parsed results
  */
-const cache = new Map<string, GrayMatterFile>();
+const cache: Map<string, GrayMatterFile> = new Map<string, GrayMatterFile>();
 
 /**
  * Takes a string or object with `content` property, extracts
@@ -34,12 +28,12 @@ const cache = new Map<string, GrayMatterFile>();
  *
  * @example
  * ```ts
- * import matter from 'gray-matter-es';
+ * import { matter } from 'gray-matter-es';
  * console.log(matter('---\ntitle: Home\n---\nOther stuff'));
  * //=> { data: { title: 'Home'}, content: 'Other stuff' }
  * ```
  */
-function matterImpl(input: GrayMatterInput, options?: GrayMatterOptions): GrayMatterFile {
+function matter(input: GrayMatterInput, options?: GrayMatterOptions): GrayMatterFile {
   if (input === "") {
     return { ...toFile(input), isEmpty: true };
   }
@@ -59,6 +53,13 @@ function matterImpl(input: GrayMatterInput, options?: GrayMatterOptions): GrayMa
   }
 
   return parseMatter(file, options);
+}
+
+/**
+ * Clear the cache
+ */
+function clearCache(): void {
+  cache.clear();
 }
 
 /**
@@ -93,7 +94,7 @@ function parseMatter(file: GrayMatterFile, options?: GrayMatterOptions): GrayMat
   const len = str.length;
 
   // use the language defined after first delimiter, if it exists
-  const lang = matterLanguage(str, opts);
+  const lang = language(str, opts);
   if (lang.name) {
     file.language = lang.name;
     str = str.slice(lang.raw.length);
@@ -139,78 +140,49 @@ function parseMatter(file: GrayMatterFile, options?: GrayMatterOptions): GrayMat
  * Detect the language to use, if one is defined after the
  * first front-matter delimiter.
  */
-function matterLanguage(str: string, options?: GrayMatterOptions): { raw: string; name: string } {
+function language(str: string, options?: GrayMatterOptions): { raw: string; name: string } {
   const opts = defaults(options);
   const open = opts.delimiters[0];
 
-  if (matterTest(str, opts)) {
+  if (test(str, opts)) {
     str = str.slice(open.length);
   }
 
-  const language = str.slice(0, str.search(/\r?\n/));
+  const lang = str.slice(0, str.search(/\r?\n/));
   return {
-    raw: language,
-    name: language ? language.trim() : "",
+    raw: lang,
+    name: lang ? lang.trim() : "",
   };
 }
 
 /**
  * Returns true if the given string has front matter.
  */
-function matterTest(str: string, options?: GrayMatterOptions): boolean {
+function test(str: string, options?: GrayMatterOptions): boolean {
   return str.startsWith(defaults(options).delimiters[0]);
 }
 
 /**
- * The matter function with all static methods
+ * Stringify an object to YAML or the specified language, and
+ * append it to the given string.
  */
-const matter: MatterFunction = Object.assign(matterImpl, {
-  /**
-   * Stringify an object to YAML or the specified language, and
-   * append it to the given string.
-   */
-  stringify: (
-    file: GrayMatterFile | string,
-    data?: Record<string, unknown>,
-    options?: GrayMatterOptions,
-  ): string => {
-    if (typeof file === "string") file = matterImpl(file, options);
-    return stringify(file, data, options);
-  },
+function stringify(
+  file: GrayMatterFile | string,
+  data?: Record<string, unknown>,
+  options?: GrayMatterOptions,
+): string {
+  const resolvedFile = typeof file === "string" ? matter(file, options) : file;
+  return stringifyImpl(resolvedFile, data, options);
+}
 
-  /**
-   * Returns true if the given string has front matter.
-   */
-  test: matterTest,
-
-  /**
-   * Detect the language to use, if one is defined after the
-   * first front-matter delimiter.
-   */
-  language: matterLanguage,
-
-  /**
-   * Clear the cache
-   */
-  clearCache: (): void => {
-    cache.clear();
-  },
-
-  /**
-   * Expose cache (read-only access)
-   */
-  cache,
-});
-
-export { matter };
-export default matter;
+export { matter, stringify, test, language, clearCache, cache };
 
 if (import.meta.vitest) {
-  const { fc, test } = await import("@fast-check/vitest");
+  const { fc, test: fcTest } = await import("@fast-check/vitest");
 
   describe("matter", () => {
     beforeEach(() => {
-      matter.clearCache();
+      clearCache();
     });
 
     it("should extract YAML front matter", () => {
@@ -286,9 +258,9 @@ if (import.meta.vitest) {
     });
   });
 
-  describe("matter.stringify", () => {
+  describe("stringify", () => {
     it("should stringify data to YAML front matter", () => {
-      const result = matter.stringify("content", { title: "Hello" });
+      const result = stringify("content", { title: "Hello" });
       expect(result).toContain("---");
       expect(result).toContain("title: Hello");
       expect(result).toContain("content");
@@ -296,36 +268,36 @@ if (import.meta.vitest) {
 
     it("should stringify file object", () => {
       const file = matter("---\ntitle: Test\n---\ncontent");
-      const result = matter.stringify(file, { title: "Updated" });
+      const result = stringify(file, { title: "Updated" });
       expect(result).toContain("title: Updated");
     });
   });
 
-  describe("matter.test", () => {
+  describe("test", () => {
     it("should return true for string with front matter", () => {
-      expect(matter.test("---\nabc: xyz\n---")).toBe(true);
+      expect(test("---\nabc: xyz\n---")).toBe(true);
     });
 
     it("should return false for string without front matter", () => {
-      expect(matter.test("foo bar")).toBe(false);
+      expect(test("foo bar")).toBe(false);
     });
   });
 
-  describe("matter.language", () => {
+  describe("language", () => {
     it("should detect language after delimiter", () => {
-      const result = matter.language("---json\n{}\n---");
+      const result = language("---json\n{}\n---");
       expect(result.name).toBe("json");
     });
 
     it("should return empty for no language", () => {
-      const result = matter.language("---\nabc: xyz\n---");
+      const result = language("---\nabc: xyz\n---");
       expect(result.name).toBe("");
     });
   });
 
   describe("property-based tests", () => {
     beforeEach(() => {
-      matter.clearCache();
+      clearCache();
     });
 
     /** Arbitrary for YAML-safe keys */
@@ -343,12 +315,12 @@ if (import.meta.vitest) {
     /** Arbitrary for simple YAML-compatible objects */
     const yamlSafeObject = fc.dictionary(yamlKey, yamlSafeValue, { minKeys: 1, maxKeys: 5 });
 
-    test.prop([fc.string({ minLength: 1, maxLength: 100 })])(
+    fcTest.prop([fc.string({ minLength: 1, maxLength: 100 })])(
       "Uint8Array and string input should produce equivalent results",
       (content) => {
-        matter.clearCache();
+        clearCache();
         const fromString = matter(content);
-        matter.clearCache();
+        clearCache();
         const fromUint8Array = matter(new TextEncoder().encode(content));
 
         expect(fromString.content).toBe(fromUint8Array.content);
@@ -357,7 +329,7 @@ if (import.meta.vitest) {
       },
     );
 
-    test.prop([yamlSafeObject, fc.string({ minLength: 0, maxLength: 50 })])(
+    fcTest.prop([yamlSafeObject, fc.string({ minLength: 0, maxLength: 50 })])(
       "parse then stringify should preserve data",
       (data, content) => {
         const frontMatter = Object.entries(data)
@@ -365,21 +337,21 @@ if (import.meta.vitest) {
           .join("\n");
         const input = `---\n${frontMatter}\n---\n${content}`;
 
-        matter.clearCache();
+        clearCache();
         const parsed = matter(input);
-        const stringified = matter.stringify(parsed);
-        matter.clearCache();
+        const stringified = stringify(parsed);
+        clearCache();
         const reparsed = matter(stringified);
 
         expect(reparsed.data).toEqual(parsed.data);
       },
     );
 
-    test.prop([fc.string({ minLength: 0, maxLength: 100 })])(
+    fcTest.prop([fc.string({ minLength: 0, maxLength: 100 })])(
       "content without front matter should be preserved",
       (content) => {
         const safeContent = content.replace(/^---/gm, "___");
-        matter.clearCache();
+        clearCache();
         const result = matter(safeContent);
 
         expect(result.content).toBe(safeContent);
@@ -387,26 +359,26 @@ if (import.meta.vitest) {
       },
     );
 
-    test.prop([
+    fcTest.prop([
       yamlSafeObject,
       fc.string({ minLength: 0, maxLength: 50 }),
       fc.string({ minLength: 1, maxLength: 50 }),
-    ])("matter.test should correctly detect front matter", (data, content, noFrontMatter) => {
+    ])("test should correctly detect front matter", (data, content, noFrontMatter) => {
       const frontMatter = Object.entries(data)
         .map(([k, v]) => `${k}: ${typeof v === "string" ? JSON.stringify(v) : v}`)
         .join("\n");
       const withFrontMatter = `---\n${frontMatter}\n---\n${content}`;
       const withoutFrontMatter = noFrontMatter.replace(/^---/gm, "___");
 
-      expect(matter.test(withFrontMatter)).toBe(true);
-      expect(matter.test(withoutFrontMatter)).toBe(withoutFrontMatter.startsWith("---"));
+      expect(test(withFrontMatter)).toBe(true);
+      expect(test(withoutFrontMatter)).toBe(withoutFrontMatter.startsWith("---"));
     });
 
-    test.prop([fc.constantFrom("yaml", "json"), yamlSafeObject, fc.string({ maxLength: 30 })])(
+    fcTest.prop([fc.constantFrom("yaml", "json"), yamlSafeObject, fc.string({ maxLength: 30 })])(
       "should handle different languages",
-      (language, data, content) => {
+      (lang, data, content) => {
         let frontMatterContent: string;
-        if (language === "json") {
+        if (lang === "json") {
           frontMatterContent = JSON.stringify(data);
         } else {
           frontMatterContent = Object.entries(data)
@@ -414,20 +386,20 @@ if (import.meta.vitest) {
             .join("\n");
         }
 
-        const input = `---${language}\n${frontMatterContent}\n---\n${content}`;
-        matter.clearCache();
+        const input = `---${lang}\n${frontMatterContent}\n---\n${content}`;
+        clearCache();
         const result = matter(input);
 
-        expect(result.language).toBe(language);
+        expect(result.language).toBe(lang);
         expect(result.data).toEqual(data);
       },
     );
 
-    test.prop([fc.constantFrom("---", "~~~", "***", "+++")])(
+    fcTest.prop([fc.constantFrom("---", "~~~", "***", "+++")])(
       "should handle custom delimiters",
       (delimiter) => {
         const input = `${delimiter}\ntitle: Test\n${delimiter}\ncontent`;
-        matter.clearCache();
+        clearCache();
         const result = matter(input, { delimiters: delimiter });
 
         expect(result.data).toEqual({ title: "Test" });
@@ -435,7 +407,7 @@ if (import.meta.vitest) {
       },
     );
 
-    test.prop([
+    fcTest.prop([
       fc.string({ minLength: 1, maxLength: 20 }),
       fc.string({ minLength: 1, maxLength: 20 }),
     ])("should extract excerpt with custom separator", (excerptText, contentText) => {
@@ -444,22 +416,22 @@ if (import.meta.vitest) {
       const safeContent = contentText.replace(separator, "");
       const input = `---\ntitle: Test\n---\n${safeExcerpt}\n${separator}\n${safeContent}`;
 
-      matter.clearCache();
+      clearCache();
       const result = matter(input, { excerpt: true, excerpt_separator: separator });
 
       expect(result.excerpt).toBe(`${safeExcerpt}\n`);
     });
 
-    test.prop([fc.string({ minLength: 0, maxLength: 50 })])(
+    fcTest.prop([fc.string({ minLength: 0, maxLength: 50 })])(
       "should handle CRLF and LF consistently",
       (content) => {
         const yamlData = "title: Test";
         const inputLF = `---\n${yamlData}\n---\n${content}`;
         const inputCRLF = `---\r\n${yamlData}\r\n---\r\n${content}`;
 
-        matter.clearCache();
+        clearCache();
         const resultLF = matter(inputLF);
-        matter.clearCache();
+        clearCache();
         const resultCRLF = matter(inputCRLF);
 
         expect(resultLF.data).toEqual(resultCRLF.data);

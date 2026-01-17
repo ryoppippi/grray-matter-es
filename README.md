@@ -8,6 +8,7 @@ ESM-only [gray-matter](https://github.com/jonschlinkert/gray-matter) implementat
 ## Features
 
 - 🚀 ESM-only, no CommonJS
+- 🌲 Tree-shakable (named exports)
 - 🌐 Browser-compatible (no Node.js dependencies)
 - 📦 Zero runtime dependencies (YAML parser bundled from [@std/yaml](https://jsr.io/@std/yaml))
 - 🔷 Full TypeScript support with strict types
@@ -24,12 +25,10 @@ pnpm add gray-matter-es
 ## Usage
 
 ```typescript
-import matter from "gray-matter-es";
-// or
-import { matter } from "gray-matter-es";
+import * as matter from "gray-matter-es";
 
 // Parse front matter
-const file = matter("---\ntitle: Hello\n---\nThis is content");
+const file = matter.matter("---\ntitle: Hello\n---\nThis is content");
 console.log(file.data); // { title: 'Hello' }
 console.log(file.content); // 'This is content'
 
@@ -45,6 +44,12 @@ matter.test("---\ntitle: Hello\n---"); // true
 
 // Detect language
 matter.language("---json\n{}\n---"); // { raw: 'json', name: 'json' }
+```
+
+You can also import individual functions for tree-shaking:
+
+```typescript
+import { matter, stringify, test, language, clearCache, cache } from "gray-matter-es";
 ```
 
 ### Custom Delimiters
@@ -94,17 +99,25 @@ Parse front matter from a string or Uint8Array.
 - `isEmpty` - True if front matter block was empty
 - `stringify(data?, options?)` - Stringify the file back
 
-### `matter.stringify(file, data?, options?)`
+### `stringify(file, data?, options?)`
 
 Stringify data to front matter and append content.
 
-### `matter.test(str, options?)`
+### `test(str, options?)`
 
 Test if a string has front matter.
 
-### `matter.language(str, options?)`
+### `language(str, options?)`
 
 Detect the language specified after the opening delimiter.
+
+### `clearCache()`
+
+Clear the internal cache.
+
+### `cache`
+
+The internal cache (read-only access).
 
 ### Options
 
@@ -131,9 +144,25 @@ Detect the language specified after the opening delimiter.
 
 ```diff
 - const matter = require('gray-matter');
-+ import matter from 'gray-matter-es';
-+ // or
-+ import { matter } from 'gray-matter-es';
++ import * as matter from 'gray-matter-es';
+```
+
+### API Changes
+
+The main function is now `matter.matter()` instead of `matter()`:
+
+```diff
+- const result = matter(str);
++ const result = matter.matter(str);
+```
+
+Other methods remain the same:
+
+```typescript
+matter.stringify(file, data);
+matter.test(str);
+matter.language(str);
+matter.clearCache();
 ```
 
 ### Removed Features
@@ -187,7 +216,7 @@ If you're using CommonJS, you'll need to either:
 2. Use dynamic import:
 
 ```javascript
-const matter = await import("gray-matter-es").then((m) => m.default);
+const { matter } = await import("gray-matter-es");
 ```
 
 ## Development

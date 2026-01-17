@@ -66,19 +66,3 @@ export type GrayMatterInput =
   | string
   | Uint8Array
   | { content: string; data?: Record<string, unknown> };
-
-/**
- * The matter function interface with static methods
- */
-export interface MatterFunction {
-  (input: GrayMatterInput, options?: GrayMatterOptions): GrayMatterFile;
-  stringify: (
-    file: GrayMatterFile | string,
-    data?: Record<string, unknown>,
-    options?: GrayMatterOptions,
-  ) => string;
-  test: (str: string, options?: GrayMatterOptions) => boolean;
-  language: (str: string, options?: GrayMatterOptions) => { raw: string; name: string };
-  clearCache: () => void;
-  cache: Map<string, GrayMatterFile>;
-}
