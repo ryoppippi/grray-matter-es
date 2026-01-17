@@ -1,5 +1,4 @@
 import { readFileSync } from "node:fs";
-import { Buffer } from "node:buffer";
 import { defaults } from "./defaults.ts";
 import { type BuiltinLanguage } from "./engines.ts";
 import { excerpt } from "./excerpt.ts";
@@ -43,30 +42,7 @@ const cache = new Map<string, GrayMatterFile>();
  */
 function matterImpl(input: GrayMatterInput, options?: GrayMatterOptions): GrayMatterFile {
   if (input === "") {
-    return {
-      data: {},
-      content: input,
-      excerpt: "",
-      orig: Buffer.from(input),
-      language: "",
-      matter: "",
-      isEmpty: true,
-      stringify: (data, opts) =>
-        stringify(
-          {
-            data: {},
-            content: "",
-            excerpt: "",
-            orig: Buffer.from(""),
-            language: "",
-            matter: "",
-            isEmpty: true,
-            stringify: () => "",
-          },
-          data,
-          opts,
-        ),
-    };
+    return { ...toFile(input), isEmpty: true };
   }
 
   let file = toFile(input);
@@ -241,6 +217,7 @@ export default matter;
 
 if (import.meta.vitest) {
   const { fc, test } = await import("@fast-check/vitest");
+  const { Buffer } = await import("node:buffer");
 
   describe("matter", () => {
     beforeEach(() => {

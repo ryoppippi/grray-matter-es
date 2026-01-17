@@ -7,9 +7,8 @@ import type { GrayMatterFile, GrayMatterOptions } from "./types.ts";
 export function excerpt(file: GrayMatterFile, options?: GrayMatterOptions): GrayMatterFile {
   const opts = defaults(options);
 
-  if (file.data == null) {
-    file.data = {};
-  }
+  // Ensure data is an object (defensive check for external callers)
+  file.data ??= {};
 
   if (typeof opts.excerpt === "function") {
     opts.excerpt(file, opts);

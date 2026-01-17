@@ -1,5 +1,5 @@
 import type { GrayMatterFile, GrayMatterInput, GrayMatterOptions } from "./types.ts";
-import { define, isObject, toBuffer, toString } from "./utils.ts";
+import { isObject, toBuffer, toString } from "./utils.ts";
 import { stringify } from "./stringify.ts";
 
 /**
@@ -7,39 +7,34 @@ import { stringify } from "./stringify.ts";
  * with the expected properties.
  */
 export function toFile(input: GrayMatterInput): GrayMatterFile {
-  let file: Partial<GrayMatterFile> & { content?: string };
+  const inputObj = isObject(input) ? input : { content: input as string };
+  const data = isObject(inputObj.data) ? inputObj.data : {};
+  const content = toString((inputObj as { content?: string }).content ?? "");
+  const language = (inputObj as { language?: string }).language ?? "";
+  const matter = (inputObj as { matter?: string }).matter ?? "";
+  const orig = toBuffer((inputObj as { content?: string }).content ?? "");
 
-  if (!isObject(input)) {
-    file = { content: input as string };
-  } else {
-    file = input as Partial<GrayMatterFile>;
-  }
-
-  if (!isObject(file.data)) {
-    file.data = {};
-  }
-
-  // set non-enumerable properties on the file object
-  define(file, "orig", toBuffer(file.content ?? ""));
-  define(file, "language", file.language ?? "");
-  define(file, "matter", file.matter ?? "");
-  define(
-    file,
-    "stringify",
-    function (this: GrayMatterFile, data?: Record<string, unknown>, options?: GrayMatterOptions) {
+  const file: GrayMatterFile = {
+    data,
+    content,
+    excerpt: "",
+    orig,
+    language,
+    matter,
+    isEmpty: false,
+    stringify(
+      this: GrayMatterFile,
+      newData?: Record<string, unknown>,
+      options?: GrayMatterOptions,
+    ) {
       if (options?.language) {
         this.language = options.language;
       }
-      return stringify(this, data, options);
+      return stringify(this, newData, options);
     },
-  );
+  };
 
-  // strip BOM and ensure that "file.content" is a string
-  file.content = toString(file.content ?? "");
-  file.isEmpty = false;
-  file.excerpt = "";
-
-  return file as GrayMatterFile;
+  return file;
 }
 
 if (import.meta.vitest) {

@@ -1,4 +1,3 @@
-import type { BuiltinLanguage } from "./engines.ts";
 import type { GrayMatterOptions, ResolvedOptions } from "./types.ts";
 import { arrayify } from "./utils.ts";
 
@@ -6,13 +5,13 @@ import { arrayify } from "./utils.ts";
  * Apply default options
  */
 export function defaults(options?: GrayMatterOptions): ResolvedOptions {
-  const opts = { ...options } as ResolvedOptions;
+  const delims = arrayify(options?.delimiters ?? "---");
+  const delimiters: [string, string] =
+    delims.length === 1 ? [delims[0]!, delims[0]!] : [delims[0]!, delims[1]!];
 
-  // ensure that delimiters are an array
-  const delims = arrayify(opts.delimiters ?? "---");
-  opts.delimiters = delims.length === 1 ? [delims[0]!, delims[0]!] : [delims[0]!, delims[1]!];
-
-  opts.language = (opts.language ?? "yaml") as BuiltinLanguage;
-
-  return opts;
+  return {
+    ...options,
+    delimiters,
+    language: options?.language ?? "yaml",
+  };
 }

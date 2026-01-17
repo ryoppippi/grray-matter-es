@@ -8,18 +8,6 @@ function stripBom(str: string): string {
 }
 
 /**
- * Define a non-enumerable property on an object
- */
-export function define<T extends object, K extends PropertyKey, V>(obj: T, key: K, val: V): void {
-  Object.defineProperty(obj, key, {
-    enumerable: false,
-    configurable: true,
-    writable: true,
-    value: val,
-  });
-}
-
-/**
  * Returns true if `val` is a Buffer
  */
 function isBuffer(val: unknown): val is Buffer {
