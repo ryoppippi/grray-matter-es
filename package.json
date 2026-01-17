@@ -46,6 +46,8 @@
     "format:oxlint": "oxlint --max-warnings=0 --fix",
     "format:oxfmt": "oxfmt --no-error-on-unmatched-pattern .",
     "format:knip": "knip --fix --no-exit-code",
+    "prepack": "npm pkg delete scripts.preinstall && pnpm run build",
+    "preinstall": "npx only-allow pnpm",
     "prerelease": "pnpm run lint && pnpm run build",
     "release": "bumpp"
   },

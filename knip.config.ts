@@ -2,7 +2,7 @@ import type { KnipConfig } from "knip";
 
 export default {
   project: ["src/**/*.ts"],
-  ignoreBinaries: ["oxfmt", "oxlint", "tsgo"],
+  ignoreBinaries: ["oxfmt", "oxlint", "tsgo", "only-allow"],
   rules: {
     devDependencies: "warn",
   },
