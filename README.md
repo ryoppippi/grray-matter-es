@@ -124,6 +124,69 @@ Detect the language specified after the opening delimiter.
 - Removed `section-matter` support
 - TypeScript-first with strict types
 
+## Migration from gray-matter
+
+### Import Changes
+
+```diff
+- const matter = require('gray-matter');
++ import matter from 'gray-matter-es';
+```
+
+### Removed Features
+
+#### JavaScript Front Matter Engine
+
+The JavaScript engine has been removed for security reasons (it used `eval`). If you were using JavaScript front matter:
+
+```markdown
+---js
+{
+  title: "Hello",
+  date: new Date()
+}
+---
+```
+
+You'll need to either:
+
+1. Convert to YAML or JSON front matter
+2. Register a custom engine with your own parser
+
+#### Deprecated Options
+
+The following deprecated options have been removed:
+
+| Removed Option | Replacement  |
+| -------------- | ------------ |
+| `lang`         | `language`   |
+| `delims`       | `delimiters` |
+| `parsers`      | `engines`    |
+
+```diff
+- matter(str, { lang: 'json', delims: '~~~' });
++ matter(str, { language: 'json', delimiters: '~~~' });
+```
+
+#### Section Matter
+
+If you were using `section-matter` functionality, you'll need to handle it separately.
+
+### YAML Parser Differences
+
+This library uses `@std/yaml` instead of `js-yaml`. In most cases, this is a drop-in replacement, but there may be edge cases with non-standard YAML.
+
+### CommonJS Users
+
+If you're using CommonJS, you'll need to either:
+
+1. Migrate to ESM
+2. Use dynamic import:
+
+```javascript
+const matter = await import("gray-matter-es").then((m) => m.default);
+```
+
 ## License
 
 MIT
