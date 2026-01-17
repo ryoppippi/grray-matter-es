@@ -22,6 +22,18 @@ This is an ESM-only port of [gray-matter](https://github.com/jonschlinkert/gray-
 - `pnpm run build` - Build with tsdown
 - `pnpm run lint` - Lint with oxlint
 
+## Development Environment
+
+Use `nix develop` to enter the development shell. This provides all required tools including `tsgo`.
+
+When running git commands that trigger pre-commit hooks (like `git commit`), use:
+
+```bash
+nix develop -c git commit -m "your message"
+```
+
+This ensures `tsgo` and other Nix-provided tools are available during hook execution.
+
 ## Testing (Critical)
 
 This project uses **in-source vitest tests**. Tests are written at the bottom of source files:
