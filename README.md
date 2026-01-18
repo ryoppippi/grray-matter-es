@@ -209,17 +209,6 @@ If you were using `section-matter` functionality, you'll need to handle it separ
 
 This library uses `@std/yaml` instead of `js-yaml`. In most cases, this is a drop-in replacement, but there may be edge cases with non-standard YAML.
 
-### CommonJS Users
-
-If you're using CommonJS, you'll need to either:
-
-1. Migrate to ESM
-2. Use dynamic import:
-
-```javascript
-const { matter } = await import("gray-matter-es");
-```
-
 ## Development
 
 ### Prerequisites
